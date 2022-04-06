@@ -5,6 +5,8 @@ from transaction import Transaction
 import utility.constants as constants
 from utility.verification import Verification
 from wallet import Wallet
+from utility.balance_util import get_balance
+
 
 class Blockchain:
     def __init__(self, hosting_node_id):
@@ -32,20 +34,20 @@ class Blockchain:
 
     def mine_block(self):
         if self.hosting_node == None:
-            return False
+            return None
         last_block = self.get_last_block()
         hashed_string = hash_util.hash_block(last_block)
         proof = self.proof_of_work()
         for tx in self.__open_transactions:
             if not Wallet.verify_transaction(tx):
-                return False
+                return None
         self.reward_miner(self.hosting_node)
         block = Block(len(self.__chain), hashed_string, self.__open_transactions, proof)
 
         self.__chain.append(block)
         self.__open_transactions = []
         Store.save_data(self.__chain, self.__open_transactions)
-        return True
+        return block
 
 
     def print_blockchain(self):
@@ -79,3 +81,6 @@ class Blockchain:
             Store.save_data(self.__chain, self.__open_transactions)
             return True
         return False
+
+    def get_balance(self):
+        return get_balance(self.hosting_node, self.__open_transactions, self.__chain)

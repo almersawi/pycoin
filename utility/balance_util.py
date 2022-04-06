@@ -6,8 +6,9 @@ def get_sum(values_list):
 
 
 def get_balance(participant, open_transactions, blockchain):
+    if participant == None:
+        return None
     tx_sender = get_send_amount(participant, blockchain)
-    print(open_transactions)
     open_tx_sender = [tx.amount
                       for tx in open_transactions if tx.sender == participant]
     tx_sender.append(open_tx_sender)
