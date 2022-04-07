@@ -27,7 +27,7 @@ class Wallet:
             with open('wallet.txt', mode='r') as f:
                 keys = f.readlines()
                 self.public_key = keys[0][:-1]
-                self.private_key = keys[0]
+                self.private_key = keys[1]
                 return True
         except (IOError, IndexError):
             print("Getting wallet failed!")
