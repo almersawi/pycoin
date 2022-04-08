@@ -7,36 +7,40 @@ from transaction import Transaction
 
 class Store:
     @staticmethod
-    def save_data(blockchain, open_transactions):
+    def save_data(blockchain, open_transactions, peer_nodes, node_id):
         saveable_chain = [block.__dict__.copy() for block in blockchain]
         for block in saveable_chain:
             block['transactions'] = [tx.to_ordered_dict()
                                     for tx in block['transactions']]
         saveable_tx = [tx.__dict__.copy() for tx in open_transactions]
         try:
-            with open('blockchain.txt', mode="w") as f:
+            with open('blockchain-{}.txt'.format(node_id), mode="w") as f:
                 f.write(json.dumps(saveable_chain))
                 f.write("\n")
                 f.write(json.dumps(saveable_tx))
+                f.write("\n")
+                f.write(json.dumps(list(peer_nodes)))
         except IOError:
             print("SAVE FAILED!")
 
 
     @staticmethod
-    def load_data():
+    def load_data(node_id):
         try:
-            with open('blockchain.txt', mode="r") as f:
+            with open('blockchain-{}.txt'.format(node_id), mode="r") as f:
                 file_content = f.readlines()
                 blockchain = json.loads(file_content[0][:-1])
                 converted_chain = [Block(block['index'], block['previous_hash'], [Transaction(tx['sender'], tx['recipient'], tx['amount'], tx['signature']) for tx in block['transactions']],
                                         block['proof'], block['timestamp']) for block in blockchain]
-                open_transactions = json.loads(file_content[1])
+                open_transactions = json.loads(file_content[1][:-1])
                 converted_open_transactions = [Transaction(
                     tx['sender'], tx['recipient'], tx['amount'], tx['signature']) for tx in open_transactions]
 
-                return (converted_chain, converted_open_transactions)
+                peer_nodes = json.loads(file_content[2])
+
+                return (converted_chain, converted_open_transactions, set(peer_nodes))
         except (IOError, IndexError):
-            return([constants.genesis_block], [])
+            return([constants.genesis_block], list(), set())
 
     @staticmethod
     def save_data_b(blockchain, open_transactions):
